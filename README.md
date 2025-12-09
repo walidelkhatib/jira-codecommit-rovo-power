@@ -35,7 +35,7 @@ https://github.com/user-attachments/assets/cb5d4ba7-0840-4031-97f4-6234fc564eeb
 
 ## Prerequisites
 
-### 1. Before using this power, ensure you have:
+### Before using this power, ensure you have:
 
 - **Docker Desktop** - Running (required for Atlassian MCP server)
 - **git-remote-codecommit** - Installed (`pip install git-remote-codecommit`)
@@ -43,7 +43,7 @@ https://github.com/user-attachments/assets/cb5d4ba7-0840-4031-97f4-6234fc564eeb
 - **Jira API token** - Generated at https://id.atlassian.com/manage-profile/security/api-tokens
 
 
-### 2. Configure Trusted Commands (Recommended)
+### Configure Trusted Commands (Recommended)
 
 For fully autonomous workflows, add these trusted commands in **Kiro Settings → Kiro Agent: Trusted Commands**:
 
@@ -57,7 +57,7 @@ git stash *
 mkdir *
 ```
 
-### 3. Configure MCP Settings
+### Configure MCP Settings
 
 The power's `mcp.json` includes `autoApprove` lists for reference, but you must manually add them to your user-level configuration.
 
