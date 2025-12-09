@@ -25,11 +25,11 @@ https://github.com/user-attachments/assets/cb5d4ba7-0840-4031-97f4-6234fc564eeb
 
 ### Key Features
 
-- **Fully Autonomous Workflows** - If MCP tools are trusted, just provide a trigger phrase and Kiro handles everything end-to-end
+- **Fully Autonomous Workflows** - If MCP tools are trusted, Kiro handles everything end-to-end
 
-- **Automatic Jira Integration** - Adds "kiro" label and comments on all tickets for tracking and analytics (use JQL: `labels = kiro`)
+- **Automatic Jira Integration** - Adds "kiro" label and comments on all tickets for tracking and analytics
 
-- **Direct CodeCommit Integration** - Creates PRs, posts review comments, and manages branches using AWS MCP
+- **Direct CodeCommit Integration** - Creates PRs, posts review comments, and manages branches
 
 - **Complete Audit Trail** - All actions tracked in both Jira and CodeCommit with clear timestamps
 
