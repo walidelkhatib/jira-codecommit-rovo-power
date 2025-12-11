@@ -1,4 +1,4 @@
-# Jira-CodeCommit Power
+# Jira-CodeCommit Development Power
 
 A Kiro Power that enables autonomous AI-assisted development workflows integrating Jira ticket management with AWS CodeCommit pull requests. This power allows Kiro Agent to autonomously manage three complete development workflows:
 
