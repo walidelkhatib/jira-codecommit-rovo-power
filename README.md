@@ -158,5 +158,3 @@ Feedback and contributions are welcome. Please open an issue on GitHub.
 ## License
 
 MIT License - see [LICENSE](LICENSE) file for details.
-
-Copyright (c) 2025 Walid El Khatib
