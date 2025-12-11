@@ -45,7 +45,7 @@ https://github.com/user-attachments/assets/cb5d4ba7-0840-4031-97f4-6234fc564eeb
 - **AWS CLI** - Configured with a profile that has CodeCommit permissions
 - **Jira API token** - Generated at https://id.atlassian.com/manage-profile/security/api-tokens
 
-### Configure Trusted Commands (Recommended)
+### Configure Trusted Commands (Optional)
 
 For fully autonomous workflows, add these trusted commands in **Kiro Settings → Kiro Agent: Trusted Commands**:
 
@@ -64,6 +64,8 @@ mkdir *
 The power's `mcp.json` includes `autoApprove` lists for reference, but you must manually add them to your user-level configuration.
 
 Edit `~/.kiro/settings/mcp.json` and add your credentials:
+
+**⚠️ Security Notice:** The `autoApprove` lists below are suggestions for fully autonomous workflows. Auto-approving `aws___call_aws` grants Kiro broad AWS access. **Strongly recommended:** Use a dedicated AWS profile with CodeCommit-only permissions. See the power documentation for detailed security recommendations.
 
 ```json
 {

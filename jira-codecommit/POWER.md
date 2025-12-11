@@ -280,6 +280,8 @@ Result: Review feedback addressed with updates on PR and Jira
 
 3. Configure MCP servers in `~/.kiro/settings/mcp.json`:
 
+**⚠️ Security Warning:** The `autoApprove` lists below are **optional suggestions** for fully autonomous workflows. The `aws___call_aws` tool grants broad AWS access - see Security Considerations section for important recommendations.
+
 ```json
 {
   "powers": {
@@ -354,6 +356,48 @@ Before using this power, replace the following placeholders in `~/.kiro/settings
 
 - **`your-profile-name`**: Your AWS CLI profile name.
   - **How to get it:** Use `aws configure list-profiles` to see available profiles, or use `default`
+  - **Security Recommendation:** Create a dedicated AWS profile with **CodeCommit-only permissions** to limit Kiro's AWS access scope
+
+## Security Considerations
+
+### AWS Permissions and Profile Recommendations
+
+**⚠️ Important Security Notice:**
+
+The `autoApprove` configuration for `aws___call_aws` grants Kiro access to **any AWS API operation** available to your configured AWS profile. This is necessary for CodeCommit operations but provides broad AWS access.
+
+**Recommended Security Practices:**
+
+1. **Use a dedicated AWS profile** for CodeCommit operations:
+   ```bash
+   aws configure --profile codecommit-only
+   ```
+
+2. **Limit the profile's IAM permissions** to only CodeCommit operations:
+   ```json
+   {
+     "Version": "2012-10-17",
+     "Statement": [
+       {
+         "Effect": "Allow",
+         "Action": [
+           "codecommit:GetRepository",
+           "codecommit:CreatePullRequest",
+           "codecommit:GetPullRequest",
+           "codecommit:PostCommentForPullRequest",
+           "codecommit:GetCommentsForPullRequest",
+           "codecommit:GetDifferences",
+           "codecommit:ListPullRequests"
+         ],
+         "Resource": "arn:aws:codecommit:*:*:*"
+       }
+     ]
+   }
+   ```
+
+3. **Alternative: Manual Approval** - If you prefer not to auto-approve `aws___call_aws`, remove it from the `autoApprove` list. Kiro will ask for permission before each AWS operation.
+
+**Future Enhancement:** When a dedicated CodeCommit MCP server becomes available, this power will be updated to use more granular permissions instead of the broad `aws___call_aws` tool.
 
 ## Troubleshooting
 
