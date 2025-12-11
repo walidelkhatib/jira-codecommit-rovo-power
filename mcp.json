@@ -1,0 +1,74 @@
+{
+  "mcpServers": {
+    "atlassian": {
+      "command": "docker",
+      "args": [
+        "run",
+        "--rm",
+        "-i",
+        "-e",
+        "JIRA_URL",
+        "-e",
+        "JIRA_USERNAME",
+        "-e",
+        "JIRA_API_TOKEN",
+        "ghcr.io/sooperset/mcp-atlassian:latest"
+      ],
+      "env": {
+        "JIRA_URL": "https://your-company.atlassian.net",
+        "JIRA_USERNAME": "your.email@company.com",
+        "JIRA_API_TOKEN": "your_api_token_here"
+      },
+      "disabled": false,
+      "autoApprove": [
+        "jira_get_issue",
+        "jira_update_issue",
+        "jira_add_comment",
+        "jira_transition_issue",
+        "jira_get_transitions",
+        "jira_search_issues"
+      ],
+      "timeout": 60000
+    },
+    "git": {
+      "command": "uvx",
+      "args": ["mcp-server-git"],
+      "env": {
+        "GIT_PAGER": "cat"
+      },
+      "disabled": false,
+      "autoApprove": [
+        "git_status",
+        "git_create_branch",
+        "git_checkout",
+        "git_add",
+        "git_commit",
+        "git_diff",
+        "git_diff_unstaged",
+        "git_diff_staged",
+        "git_log",
+        "git_branch"
+      ],
+      "timeout": 30000
+    },
+    "aws-mcp": {
+      "command": "uvx",
+      "args": [
+        "mcp-proxy-for-aws@latest",
+        "https://aws-mcp.us-east-1.api.aws/mcp",
+        "--metadata",
+        "AWS_REGION=us-east-1"
+      ],
+      "env": {
+        "AWS_PROFILE": "profile"
+      },
+      "disabled": false,
+      "autoApprove": [
+        "aws___call_aws",
+        "aws___search_documentation",
+        "aws___read_documentation"
+      ],
+      "timeout": 100000
+    }
+  }
+}
