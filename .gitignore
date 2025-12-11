@@ -1,0 +1,21 @@
+# Sensitive files
+.env
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+
+# Video files (if you decide not to include them)
+# docs/videos/*.mp4
+
+# Node modules (if any)
+node_modules/
+
+# Python (if any)
+__pycache__/
+*.pyc
