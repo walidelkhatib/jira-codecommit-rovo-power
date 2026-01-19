@@ -43,6 +43,8 @@ The power provides three automated workflows triggered by simple commands, handl
 
 ### atlassian-mcp-server
 
+**Note:** When this power is installed, Kiro automatically prefixes the server name with `power-jira-codecommit-`, so the actual installed server name will be `power-jira-codecommit-atlassian-mcp-server`. This is intentional to avoid naming conflicts between powers.
+
 **Connection:** HTTP-based MCP server (Official Atlassian Rovo MCP)
 **Documentation:** https://support.atlassian.com/atlassian-rovo-mcp-server/
 **Capabilities:** Jira operations (get issues, update tickets, add comments, transition workflows, search)
@@ -403,25 +405,25 @@ The `autoApprove` configuration for `aws___call_aws` grants Kiro access to **any
 
 **Method 1: Using Kiro UI (Recommended)**
 1. Open the **MCP Server view** in the Kiro sidebar
-2. Find "atlassian-mcp-server" in the list
+2. Find "power-jira-codecommit-atlassian-mcp-server" in the list (note the `power-jira-codecommit-` prefix)
 3. Click **"Reconnect"** button
 4. If reconnect doesn't work, click **"Delete"** then **"Add Server"**:
-   - Type: HTTP
-   - URL: `https://mcp.atlassian.com/v1/mcp`
-   - Name: `atlassian-mcp-server`
+   - The power will automatically reinstall with the correct configuration
 5. Browser window will open for authentication
 6. Log in and approve permissions
 
 **Method 2: Editing mcp.json Manually**
 1. Open `~/.kiro/settings/mcp.json` (or workspace `.kiro/settings/mcp.json`)
-2. Remove the `atlassian-mcp-server` entry and save
-3. Add it back and save again (triggers OAuth flow):
+2. Find and remove the `power-jira-codecommit-atlassian-mcp-server` entry and save
+3. Reinstall the power or manually add it back:
 ```json
 {
-  "mcpServers": {
-    "atlassian-mcp-server": {
-      "url": "https://mcp.atlassian.com/v1/mcp",
-      "type": "http"
+  "powers": {
+    "mcpServers": {
+      "power-jira-codecommit-atlassian-mcp-server": {
+        "url": "https://mcp.atlassian.com/v1/mcp",
+        "type": "http"
+      }
     }
   }
 }

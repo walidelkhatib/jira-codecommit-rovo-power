@@ -77,6 +77,8 @@ mkdir *
 
 The power's `mcp.json` includes `autoApprove` lists for reference, but you must manually add them to your user-level configuration.
 
+**Important:** When the power is installed, Kiro automatically prefixes MCP server names with `power-jira-codecommit-` to avoid conflicts. So `atlassian-mcp-server` becomes `power-jira-codecommit-atlassian-mcp-server` in your actual configuration.
+
 Edit `~/.kiro/settings/mcp.json` and add your credentials:
 
 **⚠️ Security Notice:** The `autoApprove` lists below are suggestions for fully autonomous workflows. Auto-approving `aws___call_aws` grants Kiro broad AWS access. **Strongly recommended:** Use a dedicated AWS profile with CodeCommit-only permissions. See the power documentation for detailed security recommendations.
