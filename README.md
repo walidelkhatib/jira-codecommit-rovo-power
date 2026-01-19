@@ -34,7 +34,7 @@ https://github.com/user-attachments/assets/cb5d4ba7-0840-4031-97f4-6234fc564eeb
 ## Installation
 
 1. **In Kiro**: Go to Powers → Add Custom Power → Import power from GitHub
-2. **Add URL**: `https://github.com/walidelkhatib/jira-codecommit-power/tree/main/jira-codecommit`
+2. **Add URL**: `https://github.com/walidelkhatib/jira-codecommit-rovo-power/tree/main/jira-codecommit`
 
 ## Prerequisites
 
