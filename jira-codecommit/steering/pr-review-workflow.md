@@ -312,40 +312,123 @@ If no Jira ticket is found, skip Phase 6.
 
 **Fetch current labels:**
 ```javascript
-jira_get_issue({
-  issue_key: "<TICKET_ID>",
-  fields: "labels"
+getJiraIssue({
+  issueIdOrKey: "<TICKET_ID>"
 })
 ```
 
 **Add "kiro" to labels array:**
 ```javascript
-jira_update_issue({
-  issue_key: "<TICKET_ID>",
-  fields: {
-    labels: [...currentLabels, "kiro"]
+editJiraIssue({
+  issueIdOrKey: "<TICKET_ID>",
+  update: {
+    labels: [{ set: [...currentLabels, "kiro"] }]
   }
 })
 ```
 
 **If ticket has no existing labels (or labels field is missing from response):**
 ```javascript
-jira_update_issue({
-  issue_key: "<TICKET_ID>",
-  fields: { labels: ["kiro"] }
+editJiraIssue({
+  issueIdOrKey: "<TICKET_ID>",
+  update: {
+    labels: [{ set: ["kiro"] }]
+  }
 })
 ```
 
-**Important:** `fields.labels` replaces all labels, so always include existing labels in the array. Never use `additional_fields.update.labels` syntax.
+**Important:** The Rovo MCP uses `update.labels` with operation objects. The `set` operation replaces all labels, so always include existing labels in the array.
 
-**Edge case:** If the Jira API response has no `labels` field at all (not even an empty array), treat it as empty labels `[]` and proceed with setting `labels: ["kiro"]`. Do not stop the workflow - this is normal for tickets with no labels.
+**Edge case:** If the Jira API response has no `labels` field at all (not even an empty array), treat it as empty labels `[]` and proceed with setting `labels: [{ set: ["kiro"] }]`. Do not stop the workflow - this is normal for tickets with no labels.
 
 3. Post review summary comment:
 
 ```javascript
-jira_add_comment({
-  issueKey: "<TICKET_ID>",
-  comment: "🤖 *Kiro Agent*\n\n✅ PR Review Completed\n\nI've reviewed PR #<PR_ID> and posted <NUMBER> comments.\n\n**Review Summary:**\n- 🔴 Critical issues: <COUNT>\n- 🟡 Important issues: <COUNT>\n- 🔵 Suggestions: <COUNT>\n- ✅ Good practices: <COUNT>\n\nSee PR for detailed feedback: <PR_URL>"
+addCommentToJiraIssue({
+  issueIdOrKey: "<TICKET_ID>",
+  body: {
+    type: "doc",
+    version: 1,
+    content: [
+      {
+        type: "paragraph",
+        content: [
+          { type: "text", text: "🤖 " },
+          { type: "text", text: "Kiro Agent", marks: [{ type: "em" }] }
+        ]
+      },
+      {
+        type: "paragraph",
+        content: [
+          { type: "text", text: "✅ PR Review Completed", marks: [{ type: "strong" }] }
+        ]
+      },
+      {
+        type: "paragraph",
+        content: [
+          { type: "text", text: "I've reviewed PR #<PR_ID> and posted <NUMBER> comments." }
+        ]
+      },
+      {
+        type: "paragraph",
+        content: [
+          { type: "text", text: "Review Summary:", marks: [{ type: "strong" }] }
+        ]
+      },
+      {
+        type: "bulletList",
+        content: [
+          {
+            type: "listItem",
+            content: [
+              {
+                type: "paragraph",
+                content: [{ type: "text", text: "🔴 Critical issues: <COUNT>" }]
+              }
+            ]
+          },
+          {
+            type: "listItem",
+            content: [
+              {
+                type: "paragraph",
+                content: [{ type: "text", text: "🟡 Important issues: <COUNT>" }]
+              }
+            ]
+          },
+          {
+            type: "listItem",
+            content: [
+              {
+                type: "paragraph",
+                content: [{ type: "text", text: "🔵 Suggestions: <COUNT>" }]
+              }
+            ]
+          },
+          {
+            type: "listItem",
+            content: [
+              {
+                type: "paragraph",
+                content: [{ type: "text", text: "✅ Good practices: <COUNT>" }]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        type: "paragraph",
+        content: [
+          { type: "text", text: "See PR for detailed feedback: " },
+          {
+            type: "text",
+            text: "<PR_URL>",
+            marks: [{ type: "link", attrs: { href: "<PR_URL>" } }]
+          }
+        ]
+      }
+    ]
+  }
 })
 ```
 
@@ -354,6 +437,7 @@ jira_add_comment({
 - Summary of review findings
 - Count of issues by severity
 - Link to the PR
+- Uses Atlassian Document Format (ADF) instead of plain text
 
 **Why update Jira:**
 - Keeps stakeholders informed that review is complete
@@ -369,8 +453,8 @@ jira_add_comment({
 Before proceeding, verify you completed ALL of these steps:
 
 - [ ] ✅ Extracted Jira ticket ID from PR (Step 1)
-- [ ] ✅ Added "kiro" label to ticket (Step 2)
-- [ ] ✅ Posted review summary comment (Step 3)
+- [ ] ✅ Added "kiro" label to ticket using `editJiraIssue` (Step 2)
+- [ ] ✅ Posted review summary comment using `addCommentToJiraIssue` (Step 3)
 
 **If you didn't do ALL of the above, go back and complete the missing steps!**
 

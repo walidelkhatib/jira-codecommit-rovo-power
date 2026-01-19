@@ -40,10 +40,24 @@ https://github.com/user-attachments/assets/cb5d4ba7-0840-4031-97f4-6234fc564eeb
 
 ### Before using this power, ensure you have:
 
-- **Docker Desktop** - Running (required for Atlassian MCP server)
 - **git-remote-codecommit** - Installed (`pip install git-remote-codecommit`)
 - **AWS CLI** - Configured with a profile that has CodeCommit permissions
-- **Jira API token** - Generated at https://id.atlassian.com/manage-profile/security/api-tokens
+- **Browser access** - For Atlassian OAuth authentication (first-time setup)
+
+### ⚠️ Known Limitation: Token Expiration
+
+The Atlassian Rovo MCP Server uses OAuth tokens that **expire after approximately 24 hours**. When the token expires, you'll need to reauthenticate:
+
+**Symptoms:**
+- Jira operations fail with "refresh token is expired" error
+- MCP tools stuck on "Loading tools"
+
+**Quick Fix:**
+1. Open Kiro's **MCP Server view** in the sidebar
+2. Find "atlassian-mcp-server" and click **"Reconnect"**
+3. If that doesn't work, delete and re-add the server (browser will open for OAuth)
+
+See the full power documentation for detailed reauthentication steps.
 
 ### Configure Trusted Commands (Optional)
 
@@ -71,19 +85,21 @@ Edit `~/.kiro/settings/mcp.json` and add your credentials:
 {
   "powers": {
     "mcpServers": {
-      "power-jira-codecommit-atlassian": {
-        "env": {
-          "JIRA_URL": "https://your-company.atlassian.net",
-          "JIRA_USERNAME": "your.email@company.com",
-          "JIRA_API_TOKEN": "your_api_token_here"
-        },
+      "power-jira-codecommit-atlassian-mcp-server": {
         "autoApprove": [
-          "jira_get_issue",
-          "jira_update_issue",
-          "jira_add_comment",
-          "jira_transition_issue",
-          "jira_get_transitions",
-          "jira_search_issues"
+          "atlassianUserInfo",
+          "getAccessibleAtlassianResources",
+          "getJiraIssue",
+          "editJiraIssue",
+          "addCommentToJiraIssue",
+          "transitionJiraIssue",
+          "getTransitionsForJiraIssue",
+          "searchJiraIssuesUsingJql",
+          "getVisibleJiraProjects",
+          "getJiraProjectIssueTypesMetadata",
+          "getJiraIssueTypeMetaWithFields",
+          "search",
+          "fetch"
         ]
       },
       "power-jira-codecommit-git": {
@@ -115,7 +131,7 @@ Edit `~/.kiro/settings/mcp.json` and add your credentials:
 }
 ```
 
-**Important:** Update `JIRA_URL`, `JIRA_USERNAME`, `JIRA_API_TOKEN`, and `AWS_PROFILE` with your actual values.
+**First-time setup:** When you first use the power, a browser window will open for OAuth authentication. Log in with your Atlassian account and approve the requested permissions.
 
 ## Usage Examples
 
@@ -149,7 +165,7 @@ Kiro will automatically implement fixes for review comments and update the PR.
 - [AWS CodeCommit Documentation](https://docs.aws.amazon.com/codecommit/)
 - [AWS MCP Server](https://docs.aws.amazon.com/aws-mcp/latest/userguide/what-is-mcp-server.html)
 - [Git MCP Server](https://github.com/modelcontextprotocol/servers/tree/main/src/git)
-- [Atlassian MCP Server](https://github.com/sooperset/mcp-atlassian)
+- [Atlassian Rovo MCP Server](https://support.atlassian.com/atlassian-rovo-mcp-server/)
 
 ## Contributing
 

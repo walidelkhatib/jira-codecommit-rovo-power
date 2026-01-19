@@ -277,33 +277,34 @@ If no Jira ticket is found, skip Step 8.
 
 **Fetch current labels:**
 ```javascript
-jira_get_issue({
-  issue_key: "<TICKET_ID>",
-  fields: "labels"
+getJiraIssue({
+  issueIdOrKey: "<TICKET_ID>"
 })
 ```
 
 **Add "kiro" to labels array:**
 ```javascript
-jira_update_issue({
-  issue_key: "<TICKET_ID>",
-  fields: {
-    labels: [...currentLabels, "kiro"]
+editJiraIssue({
+  issueIdOrKey: "<TICKET_ID>",
+  update: {
+    labels: [{ set: [...currentLabels, "kiro"] }]
   }
 })
 ```
 
 **If ticket has no existing labels (or labels field is missing from response):**
 ```javascript
-jira_update_issue({
-  issue_key: "<TICKET_ID>",
-  fields: { labels: ["kiro"] }
+editJiraIssue({
+  issueIdOrKey: "<TICKET_ID>",
+  update: {
+    labels: [{ set: ["kiro"] }]
+  }
 })
 ```
 
-**Important:** `fields.labels` replaces all labels, so always include existing labels in the array. Never use `additional_fields.update.labels` syntax.
+**Important:** The Rovo MCP uses `update.labels` with operation objects. The `set` operation replaces all labels, so always include existing labels in the array.
 
-**Edge case:** If the Jira API response has no `labels` field at all (not even an empty array), treat it as empty labels `[]` and proceed with setting `labels: ["kiro"]`. Do not stop the workflow - this is normal for tickets with no labels.
+**Edge case:** If the Jira API response has no `labels` field at all (not even an empty array), treat it as empty labels `[]` and proceed with setting `labels: [{ set: ["kiro"] }]`. Do not stop the workflow - this is normal for tickets with no labels.
 
 3. Transition ticket status:
 
@@ -311,16 +312,18 @@ jira_update_issue({
 
 First, get available transitions:
 ```javascript
-jira_get_transitions({
-  issue_key: "<TICKET_ID>"
+getTransitionsForJiraIssue({
+  issueIdOrKey: "<TICKET_ID>"
 })
 ```
 
 Then transition to "In Review" (or similar status like "Code Review", "Review", etc.):
 ```javascript
-jira_transition_issue({
-  issue_key: "<TICKET_ID>",
-  transition: "<TRANSITION_ID_FOR_IN_REVIEW>"
+transitionJiraIssue({
+  issueIdOrKey: "<TICKET_ID>",
+  transition: {
+    id: "<TRANSITION_ID_FOR_IN_REVIEW>"
+  }
 })
 ```
 
@@ -331,9 +334,104 @@ jira_transition_issue({
 4. Post comment to Jira ticket:
 
 ```javascript
-jira_add_comment({
-  issueKey: "<TICKET_ID>",
-  comment: "🤖 *Kiro Agent*\n\n✅ PR Review Comments Addressed\n\nI've updated PR #<PR_ID> with fixes for the review feedback:\n\n🔴 Fixed SQL injection vulnerability in users.py\n🔴 Removed hardcoded API key, moved to environment variable\n🟡 Added error handling in service.py\n🟡 Added edge case tests\n\nPR: https://console.aws.amazon.com/codesuite/codecommit/repositories/<REPO_NAME>/pull-requests/<PR_ID>\n\nReady for re-review!"
+addCommentToJiraIssue({
+  issueIdOrKey: "<TICKET_ID>",
+  body: {
+    type: "doc",
+    version: 1,
+    content: [
+      {
+        type: "paragraph",
+        content: [
+          { type: "text", text: "🤖 " },
+          { type: "text", text: "Kiro Agent", marks: [{ type: "em" }] }
+        ]
+      },
+      {
+        type: "paragraph",
+        content: [
+          { type: "text", text: "✅ PR Review Comments Addressed", marks: [{ type: "strong" }] }
+        ]
+      },
+      {
+        type: "paragraph",
+        content: [
+          { type: "text", text: "I've updated PR #<PR_ID> with fixes for the review feedback:" }
+        ]
+      },
+      {
+        type: "bulletList",
+        content: [
+          {
+            type: "listItem",
+            content: [
+              {
+                type: "paragraph",
+                content: [
+                  { type: "text", text: "🔴 Fixed SQL injection vulnerability in users.py" }
+                ]
+              }
+            ]
+          },
+          {
+            type: "listItem",
+            content: [
+              {
+                type: "paragraph",
+                content: [
+                  { type: "text", text: "🔴 Removed hardcoded API key, moved to environment variable" }
+                ]
+              }
+            ]
+          },
+          {
+            type: "listItem",
+            content: [
+              {
+                type: "paragraph",
+                content: [
+                  { type: "text", text: "🟡 Added error handling in service.py" }
+                ]
+              }
+            ]
+          },
+          {
+            type: "listItem",
+            content: [
+              {
+                type: "paragraph",
+                content: [
+                  { type: "text", text: "🟡 Added edge case tests" }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        type: "paragraph",
+        content: [
+          { type: "text", text: "PR: " },
+          {
+            type: "text",
+            text: "https://console.aws.amazon.com/codesuite/codecommit/repositories/<REPO_NAME>/pull-requests/<PR_ID>",
+            marks: [
+              {
+                type: "link",
+                attrs: {
+                  href: "https://console.aws.amazon.com/codesuite/codecommit/repositories/<REPO_NAME>/pull-requests/<PR_ID>"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        type: "paragraph",
+        content: [{ type: "text", text: "Ready for re-review!" }]
+      }
+    ]
+  }
 })
 ```
 
@@ -343,6 +441,7 @@ jira_add_comment({
 - List of critical and important issues addressed
 - Link to the PR
 - Status (ready for re-review)
+- Uses Atlassian Document Format (ADF) instead of plain text
 
 **Why update Jira:**
 - Keeps stakeholders informed
@@ -358,9 +457,9 @@ jira_add_comment({
 Before proceeding, verify you completed ALL of these steps:
 
 - [ ] ✅ Extracted Jira ticket ID from PR (Step 1)
-- [ ] ✅ Added "kiro" label to ticket (Step 2)
-- [ ] ✅ Transitioned ticket status to "In Review" (Step 3)
-- [ ] ✅ Posted comment with update (Step 4)
+- [ ] ✅ Added "kiro" label to ticket using `editJiraIssue` (Step 2)
+- [ ] ✅ Transitioned ticket status to "In Review" using `transitionJiraIssue` (Step 3)
+- [ ] ✅ Posted comment with update using `addCommentToJiraIssue` (Step 4)
 
 **If you didn't do ALL of the above, go back and complete the missing steps!**
 

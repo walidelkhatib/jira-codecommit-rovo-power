@@ -20,7 +20,7 @@ The power provides three automated workflows triggered by simple commands, handl
 - **PR Review**: Fetch PR → analyze changes → perform code review → post comments on PR → update Jira
 - **PR Patch**: Fetch review comments → checkout branch → implement fixes → commit → push → post update → update Jira
 
-**Authentication**: Requires Jira API token, AWS credentials with CodeCommit permissions, and Docker Desktop for the Atlassian MCP server.
+**Authentication**: Requires browser-based OAuth login for Atlassian Rovo MCP and AWS credentials with CodeCommit permissions.
 
 ---
 
@@ -41,12 +41,12 @@ The power provides three automated workflows triggered by simple commands, handl
 
 ## Available MCP Servers
 
-### atlassian
+### atlassian-mcp-server
 
-**Connection:** Docker-based MCP server
-**Repository:** https://github.com/sooperset/mcp-atlassian/
+**Connection:** HTTP-based MCP server (Official Atlassian Rovo MCP)
+**Documentation:** https://support.atlassian.com/atlassian-rovo-mcp-server/
 **Capabilities:** Jira operations (get issues, update tickets, add comments, transition workflows, search)
-**Requirements:** Docker Desktop must be running
+**Authentication:** Browser-based OAuth (no API tokens or Docker required)
 
 ### git
 
@@ -265,20 +265,16 @@ Result: Review feedback addressed with updates on PR and Jira
 ## Configuration
 
 **Authentication Required:**
-- Jira API token (generated at https://id.atlassian.com/manage-profile/security/api-tokens)
+- Browser-based OAuth for Atlassian Rovo MCP (no API tokens needed)
 - AWS credentials with CodeCommit permissions
-- Docker Desktop running (for Atlassian MCP)
 
 **Setup Steps:**
 
 1. Install prerequisites:
-   - Docker Desktop (must be running)
    - git-remote-codecommit: `pip install git-remote-codecommit`
    - AWS CLI configured: `aws configure`
 
-2. Generate Jira API token at https://id.atlassian.com/manage-profile/security/api-tokens
-
-3. Configure MCP servers in `~/.kiro/settings/mcp.json`:
+2. Configure MCP servers in `~/.kiro/settings/mcp.json`:
 
 **⚠️ Security Warning:** The `autoApprove` lists below are **optional suggestions** for fully autonomous workflows. The `aws___call_aws` tool grants broad AWS access - see Security Considerations section for important recommendations.
 
@@ -286,19 +282,21 @@ Result: Review feedback addressed with updates on PR and Jira
 {
   "powers": {
     "mcpServers": {
-      "power-jira-codecommit-atlassian": {
-        "env": {
-          "JIRA_URL": "https://your-company.atlassian.net",
-          "JIRA_USERNAME": "your.email@company.com",
-          "JIRA_API_TOKEN": "your_api_token_here"
-        },
+      "power-jira-codecommit-atlassian-mcp-server": {
         "autoApprove": [
-          "jira_get_issue",
-          "jira_update_issue",
-          "jira_add_comment",
-          "jira_transition_issue",
-          "jira_get_transitions",
-          "jira_search_issues"
+          "atlassianUserInfo",
+          "getAccessibleAtlassianResources",
+          "getJiraIssue",
+          "editJiraIssue",
+          "addCommentToJiraIssue",
+          "transitionJiraIssue",
+          "getTransitionsForJiraIssue",
+          "searchJiraIssuesUsingJql",
+          "getVisibleJiraProjects",
+          "getJiraProjectIssueTypesMetadata",
+          "getJiraIssueTypeMetaWithFields",
+          "search",
+          "fetch"
         ]
       },
       "power-jira-codecommit-git": {
@@ -330,6 +328,12 @@ Result: Review feedback addressed with updates on PR and Jira
 }
 ```
 
+3. **First-time authentication:** When you first use the power, a browser window will open for OAuth authentication:
+   - Log in with your Atlassian account
+   - Select which apps (Jira, Confluence, Compass) to enable
+   - Approve the requested permissions
+   - The authentication token will be stored automatically
+
 4. (Optional) Configure trusted shell commands in Kiro Settings for fully autonomous workflows:
    - `git status *`
    - `git log *`
@@ -340,19 +344,6 @@ Result: Review feedback addressed with updates on PR and Jira
    - `mkdir *`
 
 ## MCP Config Placeholders
-Before using this power, replace the following placeholders in `~/.kiro/settings/mcp.json` with your actual values:
-
-- **`https://your-company.atlassian.net`**: Your Jira instance URL.
-  - **How to get it:** Use your company's Jira URL (e.g., `https://mycompany.atlassian.net`)
-
-- **`your.email@company.com`**: Your Jira username/email.
-  - **How to get it:** Use the email address associated with your Jira account
-
-- **`your_api_token_here`**: Your Jira API token.
-  - **How to get it:**
-    1. Go to https://id.atlassian.com/manage-profile/security/api-tokens
-    2. Click "Create API token"
-    3. Copy the generated token and paste it here
 
 - **`your-profile-name`**: Your AWS CLI profile name.
   - **How to get it:** Use `aws configure list-profiles` to see available profiles, or use `default`
@@ -398,6 +389,45 @@ The `autoApprove` configuration for `aws___call_aws` grants Kiro access to **any
 3. **Alternative: Manual Approval** - If you prefer not to auto-approve `aws___call_aws`, remove it from the `autoApprove` list. Kiro will ask for permission before each AWS operation.
 
 **Future Enhancement:** When a dedicated CodeCommit MCP server becomes available, this power will be updated to use more granular permissions instead of the broad `aws___call_aws` tool.
+
+## Known Limitation: Token Expiration
+
+**⚠️ Important:** The Atlassian Rovo MCP Server uses OAuth tokens that expire after approximately 24 hours. When the token expires, MCP operations will fail silently.
+
+**Symptoms of expired token:**
+- MCP tools fail with "refresh token is expired" error
+- Stuck on "Loading tools" after Kiro restart
+- Jira operations fail without clear error messages
+
+**How to reauthenticate:**
+
+**Method 1: Using Kiro UI (Recommended)**
+1. Open the **MCP Server view** in the Kiro sidebar
+2. Find "atlassian-mcp-server" in the list
+3. Click **"Reconnect"** button
+4. If reconnect doesn't work, click **"Delete"** then **"Add Server"**:
+   - Type: HTTP
+   - URL: `https://mcp.atlassian.com/v1/mcp`
+   - Name: `atlassian-mcp-server`
+5. Browser window will open for authentication
+6. Log in and approve permissions
+
+**Method 2: Editing mcp.json Manually**
+1. Open `~/.kiro/settings/mcp.json` (or workspace `.kiro/settings/mcp.json`)
+2. Remove the `atlassian-mcp-server` entry and save
+3. Add it back and save again (triggers OAuth flow):
+```json
+{
+  "mcpServers": {
+    "atlassian-mcp-server": {
+      "url": "https://mcp.atlassian.com/v1/mcp",
+      "type": "http"
+    }
+  }
+}
+```
+
+**Note:** Kiro automatically reconnects MCP servers when the config file changes, so you don't need to restart.
 
 ## Troubleshooting
 
@@ -450,14 +480,15 @@ If timeout persists, it may be a region mismatch - report error to user and ask 
 2. Git MCP server is configured with `GIT_PAGER=cat` to prevent pager issues
 3. Only use `git push` shell command (git-remote-codecommit requirement)
 
-### Docker Connection Failed
+### Authentication Loop or Redirect Error
 
-**Cause:** Docker Desktop not running (required for Atlassian MCP)
+**Cause:** Browser blocking pop-ups or localhost redirect
 **Solution:**
 
-1. Start Docker Desktop
-2. Verify Docker is running: `docker ps`
-3. Restart Kiro if needed to reconnect MCP server
+1. Allow pop-ups from Kiro in your browser
+2. Ensure `http://localhost:3334` is not blocked by firewall
+3. Check corporate proxy settings aren't blocking OAuth redirects
+4. Try reauthenticating using the steps in "Known Limitation: Token Expiration" section
 
 ## Tips
 
@@ -471,6 +502,7 @@ If timeout persists, it may be a region mismatch - report error to user and ask 
 8. **Test in sandbox first** - Use test Jira projects and CodeCommit repos initially
 9. **Use git-remote-codecommit** - Simplifies CodeCommit authentication via AWS credentials
 10. **Follow conventional commits** - Maintains clean git history
+11. **Reauthenticate when needed** - If Jira operations fail, check if OAuth token expired (see Known Limitation section)
 
 ## Resources
 
@@ -478,7 +510,7 @@ If timeout persists, it may be a region mismatch - report error to user and ask 
 - [AWS CodeCommit Documentation](https://docs.aws.amazon.com/codecommit/)
 - [AWS MCP Server](https://docs.aws.amazon.com/aws-mcp/latest/userguide/what-is-mcp-server.html)
 - [Git MCP Server](https://github.com/modelcontextprotocol/servers/tree/main/src/git)
-- [Atlassian MCP Server](https://github.com/sooperset/mcp-atlassian)
+- [Atlassian Rovo MCP Server](https://support.atlassian.com/atlassian-rovo-mcp-server/)
 - [git-remote-codecommit](https://docs.aws.amazon.com/codecommit/latest/userguide/setting-up-git-remote-codecommit.html)
 
 ---

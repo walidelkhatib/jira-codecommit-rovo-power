@@ -41,9 +41,8 @@ This workflow automates the complete development cycle from Jira ticket analysis
 
 1. Fetch ticket details:
 ```javascript
-jira_get_issue({
-  issue_key: "PROJECT-123",
-  fields: "summary,description,labels,status,assignee,priority"
+getJiraIssue({
+  issueIdOrKey: "PROJECT-123"
 })
 ```
 
@@ -53,15 +52,15 @@ jira_get_issue({
 const currentLabels = issue.fields.labels; // e.g., ["bug", "high-priority"]
 
 // Add "kiro" to the array
-jira_update_issue({
-  issue_key: "PROJECT-123",
-  fields: {
-    labels: [...currentLabels, "kiro"]
+editJiraIssue({
+  issueIdOrKey: "PROJECT-123",
+  update: {
+    labels: [{ set: [...currentLabels, "kiro"] }]
   }
 })
 ```
 
-**Important:** The `fields.labels` parameter replaces all labels, so always include existing labels in the array. Never use `additional_fields.update.labels` syntax as it fails with the Atlassian MCP server.
+**Important:** The Rovo MCP uses a different update syntax than the sooperset MCP. Use the `update` field with operation objects like `{ set: [...] }` for labels.
 
 ### Phase 1: Pre-Implementation Check
 
@@ -244,13 +243,65 @@ aws___call_aws({
 
 1. Add PR link as comment:
 ```javascript
-jira_add_comment({
-  issueKey: "<TICKET_ID>",
-  comment: "🤖 *Kiro Agent*\n\n✅ Pull Request Created\n\nPR #<PR_ID>: [<PR_TITLE>](<PR_URL>)\n\n**Changes:**\n- <summary of changes>\n\n**Status:** Ready for review"
+addCommentToJiraIssue({
+  issueIdOrKey: "<TICKET_ID>",
+  body: {
+    type: "doc",
+    version: 1,
+    content: [
+      {
+        type: "paragraph",
+        content: [
+          { type: "text", text: "🤖 " },
+          { type: "text", text: "Kiro Agent", marks: [{ type: "em" }] }
+        ]
+      },
+      {
+        type: "paragraph",
+        content: [
+          { type: "text", text: "✅ Pull Request Created", marks: [{ type: "strong" }] }
+        ]
+      },
+      {
+        type: "paragraph",
+        content: [
+          { type: "text", text: "PR #<PR_ID>: " },
+          { type: "text", text: "<PR_TITLE>", marks: [{ type: "link", attrs: { href: "<PR_URL>" } }] }
+        ]
+      },
+      {
+        type: "paragraph",
+        content: [
+          { type: "text", text: "Changes:", marks: [{ type: "strong" }] }
+        ]
+      },
+      {
+        type: "bulletList",
+        content: [
+          {
+            type: "listItem",
+            content: [
+              {
+                type: "paragraph",
+                content: [{ type: "text", text: "<summary of changes>" }]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        type: "paragraph",
+        content: [
+          { type: "text", text: "Status:", marks: [{ type: "strong" }] },
+          { type: "text", text: " Ready for review" }
+        ]
+      }
+    ]
+  }
 })
 ```
 
-**Note:** All Jira comments must start with "🤖 *Kiro Agent*" signature for transparency.
+**Note:** The Rovo MCP uses Atlassian Document Format (ADF) for comments instead of plain text. All Jira comments must start with "🤖 *Kiro Agent*" signature for transparency.
 
 2. Transition ticket status:
 
@@ -258,16 +309,18 @@ jira_add_comment({
 
 First, get available transitions:
 ```javascript
-jira_get_transitions({
-  issue_key: "<TICKET_ID>"
+getTransitionsForJiraIssue({
+  issueIdOrKey: "<TICKET_ID>"
 })
 ```
 
 Then transition to "In Review" (or similar status like "Code Review", "Review", etc.):
 ```javascript
-jira_transition_issue({
-  issue_key: "<TICKET_ID>",
-  transition: "<TRANSITION_ID_FOR_IN_REVIEW>"
+transitionJiraIssue({
+  issueIdOrKey: "<TICKET_ID>",
+  transition: {
+    id: "<TRANSITION_ID_FOR_IN_REVIEW>"
+  }
 })
 ```
 
@@ -293,9 +346,9 @@ jira_transition_issue({
 
 Before proceeding, verify you completed ALL of these steps:
 
-- [ ] ✅ Posted comment with PR link (Step 1)
-- [ ] ✅ Transitioned ticket status to "In Review" (Step 2)
-- [ ] ✅ "kiro" label was added in Phase 0 (verify it was done)
+- [ ] ✅ Posted comment with PR link using `addCommentToJiraIssue` (Step 1)
+- [ ] ✅ Transitioned ticket status to "In Review" using `transitionJiraIssue` (Step 2)
+- [ ] ✅ "kiro" label was added in Phase 0 using `editJiraIssue` (verify it was done)
 
 **If you didn't do ALL of the above, go back and complete the missing steps!**
 
@@ -326,40 +379,43 @@ aws___call_aws({
 
 Never use `aws codecommit ...` CLI commands.
 
-### Jira Operations → Use Atlassian MCP Server
+### Jira Operations → Use Atlassian Rovo MCP Server
 
 Use these MCP tools:
-- `jira_get_issue`, `jira_update_issue`, `jira_add_comment`
-- `jira_transition_issue`, `jira_search_issues`
+- `getJiraIssue`, `editJiraIssue`, `addCommentToJiraIssue`
+- `transitionJiraIssue`, `searchJiraIssuesUsingJql`
+- `getTransitionsForJiraIssue`
 
 Never use curl to Jira REST API.
 
 ## Label Management
 
-**The Atlassian MCP server requires using `fields.labels` which replaces all labels.**
+**The Rovo MCP uses Atlassian's update operations syntax for labels.**
 
 **Adding labels:**
 
-1. Fetch current labels: `jira_get_issue` with `fields="labels"`
-2. Add new label to the array:
+1. Fetch current labels: `getJiraIssue` with `issueIdOrKey`
+2. Add new label using update operations:
 ```javascript
-jira_update_issue({
-  issue_key: "PROJECT-123",
-  fields: {
-    labels: ["existing-label-1", "existing-label-2", "new-label"]
+editJiraIssue({
+  issueIdOrKey: "PROJECT-123",
+  update: {
+    labels: [{ set: ["existing-label-1", "existing-label-2", "new-label"] }]
   }
 })
 ```
 
 **If ticket has no existing labels (or labels field is missing from response):**
 ```javascript
-jira_update_issue({
-  issue_key: "PROJECT-123",
-  fields: { labels: ["new-label"] }
+editJiraIssue({
+  issueIdOrKey: "PROJECT-123",
+  update: {
+    labels: [{ set: ["new-label"] }]
+  }
 })
 ```
 
-**Important edge case:** If the Jira API response has no `labels` field at all (not even an empty array), treat it as empty labels `[]` and proceed with setting `labels: ["new-label"]`. Do not stop the workflow - this is a normal response for tickets with no labels.
+**Important edge case:** If the Jira API response has no `labels` field at all (not even an empty array), treat it as empty labels `[]` and proceed with setting `labels: [{ set: ["new-label"] }]`. Do not stop the workflow - this is a normal response for tickets with no labels.
 
 **Removing labels:**
 
@@ -368,17 +424,19 @@ To remove specific labels while keeping others:
 2. Filter out the labels to remove
 3. Set the remaining labels:
 ```javascript
-jira_update_issue({
-  issue_key: "PROJECT-123",
-  fields: { labels: ["keep-this", "and-this"] }
+editJiraIssue({
+  issueIdOrKey: "PROJECT-123",
+  update: {
+    labels: [{ set: ["keep-this", "and-this"] }]
+  }
 })
 ```
 
 **Key points:**
-- Always use `fields.labels` (replaces all labels)
+- Always use `update.labels` with operation objects
+- The `set` operation replaces all labels
 - Always fetch current labels first before updating
 - Include all existing labels you want to keep in the array
-- Never use `additional_fields.update.labels` syntax
 
 ## Error Handling
 

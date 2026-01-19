@@ -1,32 +1,23 @@
 {
   "mcpServers": {
-    "atlassian": {
-      "command": "docker",
-      "args": [
-        "run",
-        "--rm",
-        "-i",
-        "-e",
-        "JIRA_URL",
-        "-e",
-        "JIRA_USERNAME",
-        "-e",
-        "JIRA_API_TOKEN",
-        "ghcr.io/sooperset/mcp-atlassian:latest"
-      ],
-      "env": {
-        "JIRA_URL": "https://your-company.atlassian.net",
-        "JIRA_USERNAME": "your.email@company.com",
-        "JIRA_API_TOKEN": "your_api_token_here"
-      },
+    "atlassian-mcp-server": {
+      "url": "https://mcp.atlassian.com/v1/mcp",
+      "type": "http",
       "disabled": false,
       "autoApprove": [
-        "jira_get_issue",
-        "jira_update_issue",
-        "jira_add_comment",
-        "jira_transition_issue",
-        "jira_get_transitions",
-        "jira_search_issues"
+        "atlassianUserInfo",
+        "getAccessibleAtlassianResources",
+        "getJiraIssue",
+        "editJiraIssue",
+        "addCommentToJiraIssue",
+        "transitionJiraIssue",
+        "getTransitionsForJiraIssue",
+        "searchJiraIssuesUsingJql",
+        "getVisibleJiraProjects",
+        "getJiraProjectIssueTypesMetadata",
+        "getJiraIssueTypeMetaWithFields",
+        "search",
+        "fetch"
       ],
       "timeout": 60000
     },
