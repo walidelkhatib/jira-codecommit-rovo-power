@@ -405,10 +405,9 @@ The `autoApprove` configuration for `aws___call_aws` grants Kiro access to **any
 
 **Method 1: Using Kiro UI (Recommended)**
 1. Open the **MCP Server view** in the Kiro sidebar
-2. Find "power-jira-codecommit-atlassian-mcp-server" in the list (note the `power-jira-codecommit-` prefix)
-3. Click **"Reconnect"** button
-4. If reconnect doesn't work, click **"Delete"** then **"Add Server"**:
-   - The power will automatically reinstall with the correct configuration
+2. Find "power-jira-codecommit-atlassian-mcp-server" in the list 
+3. Click **"Retry"** button
+4. If reconnect doesn't work, disable and re-enable and the server
 5. Browser window will open for authentication
 6. Log in and approve permissions
 
