@@ -53,8 +53,8 @@ The Atlassian Rovo MCP Server uses OAuth tokens that **expire after approximatel
 - MCP tools stuck on "Loading tools"
 
 **Quick Fix:**
-1. Open Kiro's **MCP Server view** in the sidebar
-2. Find "atlassian-mcp-server" and click **"Reconnect"**
+1. Open Kiro's MCP server config from the sidebar
+2. Disable and re-enable the MCP server
 3. If that doesn't work, delete and re-add the server (browser will open for OAuth)
 
 See the full power documentation for detailed reauthentication steps.
